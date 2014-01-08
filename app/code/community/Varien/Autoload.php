@@ -160,11 +160,11 @@ class Varien_Autoload
             if ($value !== FALSE) {
                 self::setCache($value);
             }
-        } elseif (file_exists(self::getCacheFilePath())) {
+        } elseif (true === file_exists(self::getCacheFilePath())) {
             self::setCache(unserialize(file_get_contents(self::getCacheFilePath())));
         }
 
-        if (file_exists(self::getRevalidateFlagPath()) && unlink(self::getRevalidateFlagPath())) {
+        if (true === file_exists(self::getRevalidateFlagPath()) && unlink(self::getRevalidateFlagPath())) {
             // When this is called there might not be an autoloader in place. So we need to manually load all the needed classes:
             require_once implode(DIRECTORY_SEPARATOR, array(self::$_BP, 'app', 'code', 'core', 'Mage', 'Core', 'Helper', 'Abstract.php'));
             require_once implode(DIRECTORY_SEPARATOR, array(self::$_BP, 'app', 'code', 'local', 'Aoe', 'ClassPathCache', 'Helper', 'Data.php'));
