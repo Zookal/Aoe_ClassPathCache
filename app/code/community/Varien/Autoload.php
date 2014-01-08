@@ -202,7 +202,7 @@ class Varien_Autoload
         $paths = explode(PATH_SEPARATOR, get_include_path());
         foreach ($paths as $path) {
             $fullPath = $path . DIRECTORY_SEPARATOR . $filename;
-            if (file_exists($fullPath)) {
+            if (true === @file_exists($fullPath)) {
                 return $fullPath;
             }
         }
