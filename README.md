@@ -2,6 +2,9 @@
 
 ## Change log
 
+* v.0.4.0 (Merging community contributions. Thanks a lot!)
+    * Added support for Zend OPcache (by Cyrill Schumacher)
+
 * v0.3.0 (Merging community contributions. Thanks a lot!)
     * Added support for dynamic n98-magerun module (by Christian Muench)
     * Fix package name in composer.json (by Kalen Jordan)
