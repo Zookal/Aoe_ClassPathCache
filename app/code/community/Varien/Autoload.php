@@ -262,14 +262,22 @@ class Varien_Autoload
     }
 
     /**
-     * @param string $fileName
+     * first invalidate it, then compile it. if compile functions does not exists then the next request will compile it.
+     * A simple opcache_compile_file is not enough to refresh it in the opcache
+     *
+     * @param null|string $fileName
      */
-    public static function opCachePrime($fileName)
+    public static function opCachePrime($fileName = NULL)
     {
+        $fileName = NULL === $fileName
+            ? self::getCacheFilePath()
+            : $fileName;
+
+        if (TRUE === function_exists('opcache_invalidate')) {
+            opcache_invalidate($fileName, TRUE);
+        }
         if (TRUE === function_exists('opcache_compile_file')) {
             opcache_compile_file($fileName);
-        } elseif (TRUE === function_exists('opcache_invalidate')) {
-            opcache_invalidate($fileName, TRUE);
         }
     }
 
@@ -293,8 +301,9 @@ class Varien_Autoload
                         @unlink($tmpFile);
                     }
                 }
+
                 if (TRUE === static::isOpCacheUsed()) {
-                    static::opCachePrime(self::getCacheFilePath());
+                    static::opCachePrime();
                 }
             }
         }
