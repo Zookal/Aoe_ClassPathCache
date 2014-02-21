@@ -177,7 +177,7 @@ class Varien_Autoload
         if (TRUE === file_exists(self::getRevalidateFlagPath()) && unlink(self::getRevalidateFlagPath())) {
             // When this is called there might not be an autoloader in place. So we need to manually load all the needed classes:
             require_once implode(DIRECTORY_SEPARATOR, array(self::$_BP, 'app', 'code', 'core', 'Mage', 'Core', 'Helper', 'Abstract.php'));
-            require_once implode(DIRECTORY_SEPARATOR, array(self::$_BP, 'app', 'code', 'local', 'Aoe', 'ClassPathCache', 'Helper', 'Data.php'));
+            require_once implode(DIRECTORY_SEPARATOR, array(self::$_BP, 'app', 'code', 'community', 'Aoe', 'ClassPathCache', 'Helper', 'Data.php'));
             $helper = new Aoe_ClassPathCache_Helper_Data;
             $helper->revalidateCache();
         }
@@ -193,10 +193,12 @@ class Varien_Autoload
     static public function getFullPath($className)
     {
         if (!isset(self::$_cache[$className])) {
-            self::$_cache[$className] = self::searchFullPath(self::getFileFromClassName($className));
-            // removing the basepath
-            self::$_cache[$className] = str_replace(self::$_BP . DIRECTORY_SEPARATOR, '', self::$_cache[$className]);
-            self::$_numberOfFilesAddedToCache++;
+            $fullPath = self::searchFullPath(self::getFileFromClassName($className));
+            if (FALSE !== $fullPath) {
+                // removing the basepath
+                self::$_cache[$className] = str_replace(self::$_BP . DIRECTORY_SEPARATOR, '', $fullPath);
+                self::$_numberOfFilesAddedToCache++;
+            }
         }
         return self::$_cache[$className];
     }
