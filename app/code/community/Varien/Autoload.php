@@ -15,8 +15,16 @@ class Varien_Autoload
     static protected $_cache = array();
     static protected $_numberOfFilesAddedToCache = 0;
 
-    static public $useAPC = NULL;
-    static public $useOPC = NULL;
+    /**
+     * @var bool|null
+     */
+    static public $useAPC = null;
+
+    /**
+     * @var bool|null
+     */
+    static public $useOPC = null;
+
     static protected $cacheKey = self::CACHE_KEY_PREFIX;
 
     /* Base Path */
@@ -29,7 +37,7 @@ class Varien_Autoload
     {
         if (defined('BP')) {
             self::$_BP = BP;
-        } elseif (strpos($_SERVER["SCRIPT_FILENAME"], 'get.php') !== FALSE) {
+        } elseif (strpos($_SERVER["SCRIPT_FILENAME"], 'get.php') !== false) {
             global $bp; //get from get.php
             if (isset($bp) && !empty($bp)) {
                 self::$_BP = $bp;
@@ -37,11 +45,11 @@ class Varien_Autoload
         }
 
         // Allow APC to be disabled externally by explicitly setting Varien_Autoload::$useAPC = FALSE;
-        if (self::$useAPC === NULL) {
-            self::$useAPC = extension_loaded('apc') && ini_get('apc.enabled');
+        if (self::$useAPC === null) {
+            self::$useAPC = extension_loaded('apc') && true === (boolean)ini_get('apc.enabled');
         }
-        if (self::$useOPC === NULL) {
-            self::$useOPC = extension_loaded('Zend OPcache') && ini_get('opcache.enable');
+        if (self::$useOPC === null) {
+            self::$useOPC = extension_loaded('Zend OPcache') && (true === (boolean)ini_get('opcache.enable') || true === (boolean)ini_get('opcache.enable_cli'));
         }
 
         self::$cacheKey = self::CACHE_KEY_PREFIX . "_" . md5(self::$_BP);
@@ -87,10 +95,10 @@ class Varien_Autoload
 
         // Get file path (from cache if available)
         $realPath = self::getFullPath($class);
-        if (FALSE === empty($realPath)) {
+        if (false === empty($realPath)) {
             return include self::$_BP . DIRECTORY_SEPARATOR . $realPath;
         }
-        return FALSE;
+        return false;
     }
 
     /**
@@ -167,14 +175,14 @@ class Varien_Autoload
 
         if (self::isApcUsed()) {
             $value = apc_fetch(self::getCacheKey());
-            if ($value !== FALSE) {
+            if ($value !== false) {
                 self::setCache($value);
             }
-        } elseif (TRUE === file_exists(self::getCacheFilePath())) {
+        } elseif (true === file_exists(self::getCacheFilePath())) {
             self::setCache(include_once(self::getCacheFilePath()));
         }
 
-        if (TRUE === file_exists(self::getRevalidateFlagPath()) && unlink(self::getRevalidateFlagPath())) {
+        if (true === file_exists(self::getRevalidateFlagPath()) && unlink(self::getRevalidateFlagPath())) {
             // When this is called there might not be an autoloader in place. So we need to manually load all the needed classes:
             require_once implode(DIRECTORY_SEPARATOR, array(self::$_BP, 'app', 'code', 'core', 'Mage', 'Core', 'Helper', 'Abstract.php'));
             require_once implode(DIRECTORY_SEPARATOR, array(self::$_BP, 'app', 'code', 'community', 'Aoe', 'ClassPathCache', 'Helper', 'Data.php'));
@@ -192,15 +200,15 @@ class Varien_Autoload
      */
     static public function getFullPath($className)
     {
-        if (FALSE === isset(self::$_cache[$className])) {
+        if (false === isset(self::$_cache[$className])) {
             $fullPath = self::searchFullPath(self::getFileFromClassName($className));
-            if (FALSE !== $fullPath) {
+            if (false !== $fullPath) {
                 // removing the basepath
                 self::$_cache[$className] = str_replace(self::$_BP . DIRECTORY_SEPARATOR, '', $fullPath);
                 self::$_numberOfFilesAddedToCache++;
             }
         }
-        return isset(self::$_cache[$className]) ? self::$_cache[$className] : FALSE;
+        return isset(self::$_cache[$className]) ? self::$_cache[$className] : false;
     }
 
     /**
@@ -216,11 +224,11 @@ class Varien_Autoload
         $paths = explode(PATH_SEPARATOR, get_include_path());
         foreach ($paths as $path) {
             $fullPath = $path . DIRECTORY_SEPARATOR . $filename;
-            if (TRUE === @file_exists($fullPath)) {
+            if (true === @file_exists($fullPath)) {
                 return $fullPath;
             }
         }
-        return FALSE;
+        return false;
     }
 
     /**
@@ -269,22 +277,25 @@ class Varien_Autoload
      *
      * @param null|string $fileName
      */
-    public static function opCachePrime($fileName = NULL)
+    public static function opCachePrime($fileName = null)
     {
-        $fileName = NULL === $fileName
+        $fileName = null === $fileName
             ? self::getCacheFilePath()
             : $fileName;
 
-        if (TRUE === function_exists('opcache_invalidate')) {
-            opcache_invalidate($fileName, TRUE);
+        if (true === function_exists('opcache_invalidate')) {
+            opcache_invalidate($fileName, true);
         }
-        if (TRUE === function_exists('opcache_compile_file')) {
+        if (true === function_exists('opcache_compile_file')) {
             opcache_compile_file($fileName);
         }
     }
 
     /**
      * Class destructor
+     * 1. Preferred usage of APC/APCu userland cache
+     * 2. Fallback to OPC cache if APC is not installed
+     * 3. Fallback to normal file include without cache
      */
     public function __destruct()
     {
@@ -296,7 +307,7 @@ class Varien_Autoload
             } else {
                 $fileContent = '<?php return ' . var_export(self::$_cache, 1) . ';'; // enable opcache
                 $tmpFile     = tempnam(sys_get_temp_dir(), 'aoe_classpathcache');
-                if (FALSE !== file_put_contents($tmpFile, $fileContent)) {
+                if (false !== file_put_contents($tmpFile, $fileContent)) {
                     if (rename($tmpFile, self::getCacheFilePath())) {
                         @chmod(self::getCacheFilePath(), 0664);
                     } else {
@@ -304,7 +315,7 @@ class Varien_Autoload
                     }
                 }
 
-                if (TRUE === static::isOpCacheUsed()) {
+                if (true === static::isOpCacheUsed()) {
                     static::opCachePrime();
                 }
             }
