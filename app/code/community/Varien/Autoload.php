@@ -46,10 +46,10 @@ class Varien_Autoload
 
         // Allow APC to be disabled externally by explicitly setting Varien_Autoload::$useAPC = FALSE;
         if (self::$useAPC === null) {
-            self::$useAPC = extension_loaded('apc') && true === (boolean)ini_get('apc.enabled');
+            self::$useAPC = extension_loaded('apc') && 1 === ((boolean)ini_get('apc.enabled') | (boolean)ini_get('apc.enable_cli'));
         }
         if (self::$useOPC === null) {
-            self::$useOPC = extension_loaded('Zend OPcache') && (true === (boolean)ini_get('opcache.enable') || true === (boolean)ini_get('opcache.enable_cli'));
+            self::$useOPC = extension_loaded('Zend OPcache') && 1 === ((boolean)ini_get('opcache.enable') | (boolean)ini_get('opcache.enable_cli'));
         }
 
         self::$cacheKey = self::CACHE_KEY_PREFIX . "_" . md5(self::$_BP);
@@ -220,7 +220,7 @@ class Varien_Autoload
      */
     static public function searchFullPath($filename)
     {
-        // return stream_resolve_include_path($filename);
+        // include_path could be extended via an observer therefore load every time
         $paths = explode(PATH_SEPARATOR, get_include_path());
         foreach ($paths as $path) {
             $fullPath = $path . DIRECTORY_SEPARATOR . $filename;
