@@ -2,8 +2,11 @@
 
 ## Change log
 
-* v.0.4.0 (Merging community contributions. Thanks a lot!)
-    * Added support for Zend OPcache (by Cyrill Schumacher)
+* v0.4.1
+    * Fixed bug in the autoload desctructor call that was throwing exceptions in developer mode
+
+* v0.4.0
+    * Added support for PSR-0 compliant autoloading
 
 * v0.3.0 (Merging community contributions. Thanks a lot!)
     * Added support for dynamic n98-magerun module (by Christian Muench)
